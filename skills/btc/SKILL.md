@@ -71,7 +71,7 @@ WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/weather
 {btc} BTC (${btc * price} USD) | Verified: {verified_percentage}%
 Rank #{rank} | {country.name}
 Supply: {supply_percentage}% of 21M
-View on site: {url}
+View on site: {app_url}
 ```
 
 **Multiple results** (name search):
@@ -144,7 +144,7 @@ WebFetch https://bitcoincompanies.co/api/v1/tiers
 {has_more ? "Page {page} of {total_pages}. Say 'page 2' to see more." : ""}
 ```
 
-Always append "View on site: {url}" using the `url` field from the API response.
+Always append "View on site: {app_url}" using the `app_url` field from the API response.
 
 Use `tier.emoji` from the API response. Format BTC with comma separators.
 
@@ -202,7 +202,7 @@ BTC Price: ${price} | 24h: {change_24h}%
 |------|-----------|-----|
 | ... from stats.by_tier |
 
-View on site: {url}
+View on site: {app_url}
 ```
 
 ---
@@ -290,7 +290,7 @@ GET /tiers                            Tier definitions with ranges
 - `treasury` (`{ btc, verified_btc, claimed_btc, verified_percentage, supply_percentage }`)
 - `country` (`{ id, code, name }`)
 - `reviews` (`{ count, average_rating }`)
-- `url` (canonical page URL on bitcoincompanies.co), `updated_at`
+- `app_url` (canonical page URL on bitcoincompanies.co), `updated_at`
 
 **Company list item:**
 - `id`, `name`, `ticker`, `category`, `logo_url`
