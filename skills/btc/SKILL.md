@@ -21,7 +21,7 @@ Classify the user's input into one of three intents:
 | Contains "top N", "list", "rank", "leaderboard" | `top 10`, `list verified`, `rankings` | **LIST** |
 | Contains "stats", "overview", "how much", "total" | `total btc held`, `stats`, `market overview` | **REPORT** |
 | Contains "countries" or "tiers" | `list countries`, `show tiers` | **LIST** (special) |
-| Contains "weather", "sentiment", "activity" | `weather for strategy.com`, `market sentiment` | **LOOKUP** + weather |
+| Contains "weather", "sentiment", "activity" | `weather for strategy.com`, `market sentiment` | **LOOKUP** + weather (BETA) |
 | Everything else (assumed company name) | `Marathon`, `Coinbase`, `MicroStrategy` | **LOOKUP** (search) |
 
 **Country aliases to resolve:**
@@ -59,6 +59,9 @@ If user asked about weather/activity/sentiment, also fetch:
 WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/weather
 ```
 
+**BETA NOTE**: Always append this disclaimer when showing weather data:
+> **Beta**: Weather is in beta. We're still sourcing historical on-chain data for many companies, so coverage may be incomplete.
+
 ### Format
 
 **Single company** (domain lookup or single search result):
@@ -67,7 +70,7 @@ WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/weather
 {btc} BTC (${btc * price} USD) | Verified: {verified_percentage}%
 Rank #{rank} | {country.name}
 Supply: {supply_percentage}% of 21M
-Profile: https://bitcoincompanies.co/{domain}
+View on site: {url}
 ```
 
 **Multiple results** (name search):
@@ -140,6 +143,8 @@ WebFetch https://bitcoincompanies.co/api/v1/tiers
 {has_more ? "Page {page} of {total_pages}. Say 'page 2' to see more." : ""}
 ```
 
+Always append "View on site: {url}" using the `url` field from the API response.
+
 Use `tier.emoji` from the API response. Format BTC with comma separators.
 
 ---
@@ -195,6 +200,8 @@ BTC Price: ${price} | 24h: {change_24h}%
 | Tier | Companies | BTC |
 |------|-----------|-----|
 | ... from stats.by_tier |
+
+View on site: {url}
 ```
 
 ---
@@ -232,7 +239,7 @@ GET /tiers                            Tier definitions with ranges
 - `treasury` (`{ btc, verified_btc, claimed_btc, verified_percentage, supply_percentage }`)
 - `country` (`{ id, code, name }`)
 - `reviews` (`{ count, average_rating }`)
-- `profile_url`, `updated_at`
+- `url` (canonical page URL on bitcoincompanies.co), `updated_at`
 
 **Company list item:**
 - `id`, `name`, `ticker`, `category`, `logo_url`

@@ -5,7 +5,6 @@
   "author": "Bitcoin Companies",
   "homepage": "https://bitcoincompanies.co",
   "skills": [
-    "skills/btc",
-    "skills/bitcoin"
+    "skills/btc"
   ]
 }
