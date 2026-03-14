@@ -1,0 +1,12 @@
+{
+  "name": "bitcoin-companies-skills",
+  "description": "Query Bitcoin company treasury data — search, leaderboard, and reports from the Bitcoin Companies API",
+  "version": "1.0.0",
+  "author": "Bitcoin Companies",
+  "homepage": "https://bitcoincompanies.co",
+  "skills": [
+    "skills/bitcoin-search",
+    "skills/bitcoin-list",
+    "skills/bitcoin-report"
+  ]
+}
