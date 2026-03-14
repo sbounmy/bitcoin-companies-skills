@@ -1,0 +1,9 @@
+{
+  "name": "bitcoin-companies",
+  "description": "Bitcoin treasury research terminal — search companies, compare holdings, explore on-chain addresses & transactions, read reviews, and generate reports",
+  "version": "2.0.0",
+  "author": {
+    "name": "Bitcoin Companies",
+    "url": "https://bitcoincompanies.co"
+  }
+}

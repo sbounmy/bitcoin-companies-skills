@@ -1,6 +1,6 @@
 ---
 name: btc
-description: "Ask anything about Bitcoin companies. Examples: 'strategy.com', 'top 10 mining', 'usa', 'report etf', 'whales', 'Marathon', 'countries', 'map'"
+description: "Bitcoin treasury research terminal. Search companies, compare holdings, explore on-chain addresses & transactions, read reviews, and generate reports. Examples: 'strategy.com', 'vs marathon coinbase', 'addresses strategy.com', 'tx strategy.com', 'trust binance', 'flow mining', 'top 10', 'map'"
 ---
 
 # Bitcoin Companies
@@ -21,8 +21,15 @@ Classify the user's input into one of three intents:
 | Contains "top N", "list", "rank", "leaderboard" | `top 10`, `list verified`, `rankings` | **LIST** |
 | Contains "stats", "overview", "how much", "total" | `total btc held`, `stats`, `market overview` | **REPORT** |
 | Contains "countries" or "tiers" | `list countries`, `show tiers` | **LIST** (special) |
-| Contains "weather", "sentiment", "activity" | `weather for strategy.com`, `market sentiment` | **LOOKUP** + weather (BETA) |
 | Contains "map", "world", "globe" | `map`, `world map`, `globe` | **MAP** |
+| Starts with "history" or "claims" or "acquisitions" | `history strategy.com`, `claims coinbase.com` | **HISTORY** |
+| Starts with "vs" or "compare" | `vs strategy.com metaplanet.com`, `compare Marathon Riot` | **VS** |
+| Starts with "flow" | `flow`, `flow strategy.com`, `flow mining` | **FLOW** |
+| Contains "weather", "sentiment", "activity" | `weather for strategy.com`, `market sentiment` | **FLOW** |
+| Starts with "addresses" or "addrs" | `addresses strategy.com`, `addrs coinbase.com verified` | **ADDRESSES** |
+| Starts with "tx" or "transactions" | `tx strategy.com`, `tx strategy.com --large` | **TX** |
+| Starts with "proof" or "por" | `proof strategy.com`, `por coinbase.com` | **PROOF** |
+| Starts with "reviews" or "trust" or "reputation" or "can I trust" or "is X safe" | `reviews binance.com`, `trust coinbase` | **REVIEWS** |
 | Everything else (assumed company name) | `Marathon`, `Coinbase`, `MicroStrategy` | **LOOKUP** (search) |
 
 **Country aliases to resolve:**
@@ -54,14 +61,6 @@ Also fetch price for USD conversion:
 ```
 WebFetch https://bitcoincompanies.co/api/v1/price
 ```
-
-If user asked about weather/activity/sentiment, also fetch:
-```
-WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/weather
-```
-
-**BETA NOTE**: Always append this disclaimer when showing weather data:
-> **Beta**: Weather is in beta. We're still sourcing historical on-chain data for many companies, so coverage may be incomplete.
 
 ### Format
 
@@ -337,6 +336,373 @@ __,-----"-..?----_/ )\    . ,-'"             "                  (__--/
 
 ---
 
+## HISTORY intent
+
+Show a company's Bitcoin acquisition timeline.
+
+### Fetch
+
+```
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/claims?limit=10&page={page}
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}
+```
+
+If user provides a name instead of domain, search first:
+```
+WebFetch https://bitcoincompanies.co/api/v1/companies?q={query}&limit=1
+```
+Then use the `id` (domain) from the first result.
+
+### Format
+
+```
+## {name} — Acquisition History
+
+| Date | BTC | Type | Source | Notes |
+|------|-----|------|--------|-------|
+| 2024-11-05 | +15,400 | SEC Filing | [link] | Largest single purchase |
+| 2024-10-15 | +7,420 | SEC Filing | [link] | |
+| 2024-09-01 | -500 | Sale | [link] | Partial divestiture |
+| ... |
+
+Total: {total_count} events since {earliest_date}
+View on site: {app_url}
+```
+
+Format `btc` with `+` prefix for purchases, `-` for sales. Use comma separators.
+Use `claimed_at` for the Date column. Use `source_type` for Type (capitalize: "sec_filing" → "SEC Filing").
+If `source_url` exists, make Type a markdown link.
+Show last 10 by default. If `has_more`, append: "Page {page}. Say 'page 2' for more."
+
+---
+
+## VS intent
+
+Side-by-side comparison of two companies.
+
+### Parse
+
+Extract two company identifiers from the query. They can be domains or names.
+- `vs strategy.com metaplanet.com` → domain1=strategy.com, domain2=metaplanet.com
+- `compare Marathon Riot` → search for each, use top result's domain
+- `vs strategy.com Metaplanet` → mix of domain and name
+
+If both identifiers are identical, respond: "Cannot compare a company with itself."
+
+### Fetch (in parallel)
+
+For each company, if identifier contains a dot (domain):
+```
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}
+```
+
+Otherwise (name search):
+```
+WebFetch https://bitcoincompanies.co/api/v1/companies?q={query}&limit=1
+```
+Then fetch the detail endpoint using the returned `id`.
+
+Also fetch price:
+```
+WebFetch https://bitcoincompanies.co/api/v1/price
+```
+
+If either company returns 404, show: "Company not found: {identifier}"
+
+### Format
+
+```
+## {name1} vs {name2}
+
+|                  | {name1}          | {name2}          |
+|------------------|------------------|------------------|
+| Tier             | {tier.emoji} {tier.name} | {tier.emoji} {tier.name} |
+| BTC              | {btc}            | {btc}            |
+| USD Value        | ${btc * price}   | ${btc * price}   |
+| Rank             | #{rank}          | #{rank}          |
+| Verified         | {verified_pct}%  | {verified_pct}%  |
+| Supply %         | {supply_pct}%    | {supply_pct}%    |
+| Category         | {category}       | {category}       |
+| Country          | {country.name}   | {country.name}   |
+| Reviews          | {avg}/5 ({count})| {avg}/5 ({count})|
+
+View: {app_url1} | {app_url2}
+```
+
+Format BTC and USD with comma separators. Use `app_url` from each company response.
+
+---
+
+## FLOW intent
+
+Net inflow/outflow and sentiment. Aliases: "flow", "weather", "sentiment".
+
+### Parse arguments
+
+The command can combine a target + time window:
+
+| Argument | Detected by | Maps to |
+|----------|-------------|---------|
+| Domain | Contains a dot | Company flow: `/companies/{domain}/weather` |
+| Category | mining, etf, exchange, etc. | `?category={cat}` on global weather |
+| Country | usa, japan, france, etc. | `?location={slug}` on global weather |
+| "yesterday" or "d1" | Keyword match | `?window=d1` |
+| "monthly" or "this month" | Keyword match | `?window=m0&scale=monthly` |
+| "yearly" or year (2025) | Keyword or 4-digit number | `?window=y{year}&scale=yearly` |
+
+Default: global flow, today (`d0`).
+
+Examples:
+- `/btc flow` → `GET /weather?window=d0`
+- `/btc flow strategy.com` → `GET /companies/strategy.com/weather?window=d0`
+- `/btc flow mining monthly` → `GET /weather?category=mining&window=m0&scale=monthly`
+- `/btc flow usa yesterday` → `GET /weather?location=united-states&window=d1`
+- `/btc flow strategy.com 2025` → `GET /companies/strategy.com/weather?window=y2025&scale=yearly`
+
+### Fetch
+
+**Global flow** (no domain):
+```
+WebFetch https://bitcoincompanies.co/api/v1/weather?{params}
+```
+
+**Company flow** (domain provided):
+```
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/weather?{params}
+```
+
+### Format (global)
+
+```
+## Bitcoin Flow — {period_label}
+
+{condition.emoji} Score: {score}/100 — {condition.label}
+Net Flow: {net_flow > 0 ? "+" : ""}{net_flow} BTC
+
+Buying: {buying_companies} companies | Selling: {selling_companies} companies
+
+TOP BUYERS                          TOP SELLERS
+{name1}         +{btc} BTC          {name1}         -{btc} BTC
+{name2}         +{btc} BTC          {name2}         -{btc} BTC
+{name3}         +{btc} BTC
+
+View on site: {app_url}
+```
+
+### Format (company)
+
+```
+## {company_name} — Flow ({period_label})
+
+{condition.emoji} Score: {score}/100 — {condition.label}
+Net Flow: {net_flow > 0 ? "+" : ""}{net_flow} BTC
+
+Receiving: {receiving_addresses} addresses | Sending: {sending_addresses} addresses
+
+TOP RECEIVERS                       TOP SENDERS
+{label1}        +{btc} BTC         {label1}        -{btc} BTC
+{label2}        +{btc} BTC
+
+View on site: {app_url}
+```
+
+If score is null (no data), show: "{condition.emoji} No Signal — insufficient on-chain data for this period."
+
+**Beta**: Always append: "Flow data is in beta. Historical on-chain coverage may be incomplete for some companies."
+
+---
+
+## ADDRESSES intent
+
+List tracked Bitcoin addresses for a company with balances.
+
+### Parse
+
+- `addresses strategy.com` → domain, no filter
+- `addresses strategy.com verified` or `addrs strategy.com verified` → domain, state=verified
+
+If input is a name (no dot), search first via `/companies?q={name}&limit=1`.
+
+### Fetch
+
+```
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/addresses?sort=balance&limit=25&page={page}
+```
+
+If "verified" keyword present, add `&state=verified`.
+
+### Format
+
+```
+## {company_name} — Tracked Addresses ({total_count} total)
+
+| # | Address          | Label           | Balance    | State    | Explorer |
+|---|------------------|-----------------|------------|----------|----------|
+| 1 | bc1q...abc       | Cold Storage #1 | 5,000 BTC  | verified | [Arkham](explorer_url) |
+| 2 | bc1q...def       | Treasury        | 3,200 BTC  | verified | [Arkham](explorer_url) |
+| 3 | 3J98t...ghi      | -               | 1,800 BTC  | pending  | [Arkham](explorer_url) |
+| ... |
+
+Page {page}. {has_more ? "Say 'page 2' for more." : ""}
+View on site: {app_url}
+```
+
+Truncate addresses to first 6 + last 4 characters. Format BTC with comma separators.
+Use `explorer_url` from the API response for the Arkham link.
+
+---
+
+## TX intent
+
+Recent on-chain transactions for a company.
+
+### Parse
+
+- `tx strategy.com` → domain, default filters
+- `tx strategy.com --large` → domain, min_btc=1
+- `transactions strategy.com in` → domain, direction=in
+- `tx strategy.com out` → domain, direction=out
+
+If input is a name (no dot), search first via `/companies?q={name}&limit=1`.
+
+### Fetch
+
+```
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/transactions?sort=recent&limit=25&page={page}
+```
+
+Add filters:
+- `--large` keyword → `&min_btc=1`
+- `in` keyword → `&direction=in`
+- `out` keyword → `&direction=out`
+
+### Format
+
+```
+## {company_name} — Recent Transactions ({total_count} total{total_count_capped ? "+" : ""})
+
+| Date       | Dir | Amount     | Address          | Label           | Explorer |
+|------------|-----|------------|------------------|-----------------|----------|
+| 2026-03-14 | IN  | +150.0 BTC | bc1q...abc       | Cold Storage #1 | [Arkham](explorer_url) |
+| 2026-03-13 | OUT | -25.0 BTC  | bc1q...def       | Treasury        | [Arkham](explorer_url) |
+| ... |
+
+Page {page}. {has_more ? "Say 'page 2' for more." : ""}
+```
+
+Format direction as uppercase IN/OUT. Prefix amount with + for IN, - for OUT.
+Truncate addresses to first 6 + last 4 characters.
+If `total_count_capped` is true, show "10,000+" instead of exact count.
+Use `explorer_url` from the API response for the Arkham link.
+
+---
+
+## PROOF intent
+
+Proof of Reserve verification data. Shows only verified addresses with cryptographic signatures.
+
+### Fetch
+
+```
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/addresses?state=verified&limit=10&page={page}
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}
+```
+
+If input is a name (no dot), search first via `/companies?q={name}&limit=1`.
+
+### Format
+
+```
+## {company_name} — Proof of Reserve
+
+Verified: {verified_btc} BTC / {claimed_btc} BTC claimed ({verified_percentage}%)
+
+### Verified Addresses ({total_count})
+
+1. bc1q...abc (Cold Storage #1) — 5,000 BTC
+   Message: "Bitcoin Companies verification for strategy.com"
+   Signature: H3kJ9...xYz
+   Explorer: [Arkham](explorer_url)
+
+2. bc1q...def (Treasury) — 3,200 BTC
+   Message: "Bitcoin Companies verification for strategy.com"
+   Signature: G7mN2...aBc
+   Explorer: [Arkham](explorer_url)
+
+... (showing {limit} of {total_count}{has_more ? ", say 'page 2' for more" : ""})
+
+View on site: {app_url}
+```
+
+Use `verification_message` and `signature` from the API response (only included when state=verified).
+Truncate signatures to first 5 + last 3 characters.
+Use `explorer_url` from the API response for the Arkham link.
+
+---
+
+## REVIEWS intent
+
+Community reviews and trust signal for a company. Also triggered by trust queries like "can I trust X?", "is X safe?".
+
+### Parse
+
+- `reviews binance.com` → domain, list reviews
+- `reviews coinbase 5` → search name, filter rating=5
+- `trust binance` → search name, trust summary + reviews
+- `can I trust coinbase` → search name, trust summary + reviews
+- `is binance safe` → search name, trust summary + reviews
+
+If input is a name (no dot), search first via `/companies?q={name}&limit=1`.
+
+Trust queries (contains "trust", "safe", "reliable", "legit") trigger a trust summary before the reviews.
+
+### Fetch
+
+```
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/reviews?sort=recent&limit=10&page={page}
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}
+```
+
+If rating filter provided, add `&rating={n}`.
+
+### Format
+
+**If trust query, prepend trust summary:**
+```
+## Can you trust {name}?
+
+Rating: {reviews.average_rating}/5 ({reviews.count} reviews) | Verified: {treasury.verified_percentage}% on-chain
+Rank #{rank} | {tier.emoji} {tier.name}
+
+---
+```
+
+**Reviews list:**
+```
+## {name} — Reviews ({total_count} total)
+
+**** (4/5) — "Solid exchange but high fees"
+By CryptoTrader42 via Trustpilot — Feb 15, 2026
+Been using Binance for 3 years...
+
+  > Reply from Binance Team: Thank you for your feedback...
+
+** (2/5) — "Withdrawal issues"
+By Anonymous via Bitcoin Companies — Jan 20, 2026
+Tried to withdraw 0.5 BTC and it took 3 days...
+
+... (showing {limit} of {total_count}{has_more ? ", say 'page 2' for more" : ""})
+
+View on site: {app_url}
+```
+
+Render stars as `*` repeated per rating (e.g., `***` for 3/5).
+If `reply_text` exists, show as indented blockquote with `reply_author`.
+Truncate `body` to first 200 characters if longer, append "..."
+Format `published_at` as "Mon DD, YYYY".
+
+---
+
 ## API Reference
 
 ```
@@ -352,8 +718,18 @@ GET /companies                        Paginated leaderboard
   ?limit=25&page=1                    Pagination (max 100)
 
 GET /companies/{domain}               Company detail (by domain)
-GET /companies/{domain}/weather       Company market weather
+GET /companies/{domain}/weather       Company market weather / flow
 GET /companies/{domain}/claims        Company claims history
+GET /companies/{domain}/addresses     Company tracked addresses
+  ?state=verified                     Only verified addresses
+  ?sort=balance|recent                Sort order (default: balance)
+GET /companies/{domain}/transactions  Company on-chain transactions
+  ?min_btc=0.01                       Minimum BTC amount (default: 0.01)
+  ?direction=in|out                   Filter by direction
+  ?sort=recent|amount                 Sort order (default: recent)
+GET /companies/{domain}/reviews       Company reviews
+  ?rating=1-5                         Filter by star rating
+  ?sort=recent|rating                 Sort order (default: recent)
 
 GET /stats                            Aggregate stats (totals, by_category, by_tier)
 GET /price                            Current BTC price + 24h change
@@ -379,5 +755,20 @@ GET /tiers                            Tier definitions with ranges
 - `country` (`{ id, code, name }`)
 - `app_url` (canonical page URL on bitcoincompanies.co)
 - `reviews_count`, `reviews_average`, `updated_at`
+
+**Address:**
+- `id` (address string), `object` ("address"), `address`, `label`, `state`
+- `balance_btc`, `explorer_url` (Arkham link)
+- When `state=verified`: `verification_message`, `signature`
+
+**Transaction:**
+- `id` (txid), `object` ("transaction"), `txid`, `address`, `address_label`
+- `amount_btc` (absolute value), `direction` ("in"/"out"), `confirmed`
+- `block_height`, `block_time`, `explorer_url` (Arkham link)
+
+**Review:**
+- `id`, `object` ("review"), `overall_rating` (1-5), `title`, `body`
+- `author_name`, `source`, `published_at`
+- `reply_text`, `reply_author` (nullable, for company replies)
 
 **All responses include `app_url`** — always use this field for "View on site" links. Never hardcode URLs.

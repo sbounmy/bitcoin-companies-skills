@@ -1,6 +1,6 @@
 # Bitcoin Companies Skills
 
-Claude Code plugin to query Bitcoin company treasury data. Search companies, browse the leaderboard, and generate treasury reports, all from your terminal.
+Bitcoin treasury research terminal for Claude Code. Search companies, compare holdings, explore on-chain addresses and transactions, read reviews, and generate reports.
 
 Powered by the [Bitcoin Companies API](https://bitcoincompanies.co/api-docs) (free, no auth required).
 
@@ -14,18 +14,46 @@ claude plugin add sbounmy/bitcoin-companies-skills
 
 One command for everything. Just type `/btc` followed by what you want:
 
+### Lookup & Search
+
 | Command | What it does |
 |---------|-------------|
 | `/btc strategy.com` | Company detail card |
 | `/btc Marathon` | Search by name |
-| `/btc usa` | US companies leaderboard |
+
+### Leaderboard & Rankings
+
+| Command | What it does |
+|---------|-------------|
 | `/btc top 10 mining` | Top 10 miners |
+| `/btc usa` | US companies leaderboard |
 | `/btc whales` | Whale-tier companies |
-| `/btc report etf` | ETF treasury analysis |
 | `/btc countries` | Countries ranked by BTC |
 | `/btc tiers` | Tier definitions |
-| `/btc weather` | Global market weather (beta) |
+
+### Compare & Analyze
+
+| Command | What it does |
+|---------|-------------|
+| `/btc vs strategy.com marathon` | Side-by-side comparison |
+| `/btc report etf` | ETF treasury analysis |
+| `/btc flow mining` | Net flow & market weather |
 | `/btc map` | ASCII world map |
+
+### On-Chain Data
+
+| Command | What it does |
+|---------|-------------|
+| `/btc addresses strategy.com` | Verified wallet addresses |
+| `/btc tx strategy.com` | Recent transactions |
+| `/btc proof strategy.com` | Proof of reserves summary |
+
+### Trust & Reviews
+
+| Command | What it does |
+|---------|-------------|
+| `/btc trust binance` | Trust score & reviews |
+| `/btc reviews coinbase.com` | Community reviews |
 
 ## Examples
 
@@ -43,24 +71,31 @@ Supply: 3.52% of 21M
 View on site: https://bitcoincompanies.co/strategy.com
 ```
 
-### Browse the leaderboard
+### Compare companies
 
 ```
-/btc top 10
-/btc mining
-/btc usa verified
+/btc vs strategy.com marathon
 ```
 
-Returns a formatted table with rank, company, ticker, BTC holdings, tier, verification status, and country.
+Side-by-side table comparing BTC holdings, tier, verification status, rank, and supply percentage.
 
-### Generate a report
+### Explore on-chain data
 
 ```
-/btc report
-/btc report mining
+/btc addresses strategy.com
+/btc tx strategy.com --min-btc 100
+/btc proof strategy.com
 ```
 
-Returns aggregate stats: total companies, total BTC held, breakdowns by category and tier, plus a top 10 table.
+Browse verified wallet addresses, filter transactions by size, and view proof of reserves with on-chain verification details.
+
+### Check trust
+
+```
+/btc trust binance
+```
+
+Shows average review rating, review count, verified BTC percentage, and recent reviews.
 
 ### ASCII World Map
 
@@ -68,48 +103,7 @@ Returns aggregate stats: total companies, total BTC held, breakdowns by category
 /btc map
 ```
 
-```
- BITCOIN TREASURY WORLD MAP
-
-          . _..::__:  ,-"-"._       |]       ,     _,.__
-  _.___ _ _<_>`!(._`.`-.    /        _._     `_ ,_/  '  '-._.---.-..__
-.{     " " `-==,',._\{  \  / {)     / _ ">_,-' `                 /-/_
- \_.:--.       `._ )`^-. "'      , [_/(                       __,/-'
-'"'     \         "    _L       |-_,--'                )     /. (|
-         |           ,'         _)_.\\._<> {}              _,' /  '
-   [1]   `.         /          [_/_'` `"(     [2]       <'}  )
-          \\    .-. )          /   `-'"..' `:._          _) [3]
-   `        \  (  `(          /         `:\  > \  ,-^.  /' '
-             `._,   ""        |           \`'   \|   ?_)  {\
-                `=.---.       `._._       ,'     "`  |' ,- '.
-                  |    `-._        |     /          `:`<_|=--._
-                  (        >       .     | ,          `=.__.`-'\
-                   `.     /        |     |{|              ,-.,\     .
-                    |   ,'          \   / `'            ,"     \
-                    |  /             |_'                |  __  /
-                    | |                                 '-'  `-'   \.
-                    |/                                        "    /
-                    \.                                            '
-
-                     ,/           ______._.--._ _..---.---------.
-__,-----"-..?----_/ )\    . ,-'"             "                  (__--/
-                      /__/\/
-
- [1] United States      4,810,110 BTC
- [2] Malta                702,478 BTC
- [3] South Korea          239,042 BTC
-
- TOP 10 BY BTC HOLDINGS
- --------------------------------------------------------------------------
-  #1   US  United States       4,810,110 BTC  (221 companies)
-  #2   MT  Malta                 702,478 BTC  (  3 companies)
-  #3   KR  South Korea          239,042 BTC  ( 10 companies)
-  ...
- --------------------------------------------------------------------------
- View on site: https://bitcoincompanies.co/countries
-```
-
-Top 3 countries are placed on the map using pre-computed Mercator projection coordinates. Map from [Terminal-World-Map](https://github.com/HenrySeed/Terminal-World-Map).
+Renders a terminal-friendly world map with top 3 countries by BTC holdings marked, plus a top 10 leaderboard.
 
 ## API
 
