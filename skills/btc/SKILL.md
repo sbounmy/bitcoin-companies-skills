@@ -209,7 +209,7 @@ View on site: {app_url}
 
 ## MAP intent
 
-Draw an ASCII world map showing BTC holdings by country.
+Draw a pure ASCII world map showing BTC holdings by country.
 
 ### Fetch
 
@@ -219,41 +219,121 @@ WebFetch https://bitcoincompanies.co/api/v1/countries?limit=50
 
 ### Format
 
-Place countries at approximate geographic positions. Use flag emoji + country code + BTC amount.
-Format BTC with K/M suffixes (e.g., `4.8M`, `159K`, `12K`). Only show countries with >0 BTC.
+**IMPORTANT: No emoji.** Emoji have inconsistent widths and break VS Code / terminal alignment.
+
+The map is 69 columns x 23 rows. Place `[1]` `[2]` `[3]` markers for the top 3 countries by replacing the character at the given (col, row) position. Row 0 is the first line of the map, col 0 is the first character.
+
+**Pre-computed marker positions** (Mercator projection from capital city lat/lon):
+
+| Code | Col | Row | Country |
+|------|-----|-----|---------|
+| ar | 23 | 15 | Argentina |
+| au | 63 | 15 | Australia |
+| at | 37 | 5 | Austria |
+| bs | 19 | 8 | Bahamas |
+| bm | 22 | 7 | Bermuda |
+| bt | 51 | 8 | Bhutan |
+| br | 25 | 13 | Brazil |
+| vg | 22 | 9 | British Virgin Islands |
+| ca | 19 | 5 | Canada |
+| ky | 18 | 9 | Cayman Islands |
+| cn | 56 | 6 | China |
+| cr | 18 | 10 | Costa Rica |
+| cw | 21 | 10 | Curacao |
+| sv | 17 | 9 | El Salvador |
+| fi | 39 | 2 | Finland |
+| fr | 34 | 5 | France |
+| de | 37 | 4 | Germany |
+| gi | 33 | 7 | Gibraltar |
+| hk | 56 | 8 | Hong Kong |
+| in | 49 | 8 | India |
+| id | 54 | 12 | Indonesia |
+| il | 41 | 7 | Israel |
+| jp | 61 | 7 | Japan |
+| je | 34 | 5 | Jersey |
+| lt | 39 | 4 | Lithuania |
+| lu | 35 | 4 | Luxembourg |
+| mt | 37 | 7 | Malta |
+| mx | 15 | 9 | Mexico |
+| nl | 35 | 4 | Netherlands |
+| nz | 68 | 16 | New Zealand |
+| ng | 35 | 10 | Nigeria |
+| kp | 58 | 6 | North Korea |
+| no | 36 | 2 | Norway |
+| pa | 19 | 10 | Panama |
+| ph | 57 | 9 | Philippines |
+| pl | 38 | 4 | Poland |
+| ru | 41 | 3 | Russia |
+| sc | 45 | 12 | Seychelles |
+| sg | 54 | 11 | Singapore |
+| si | 37 | 5 | Slovenia |
+| za | 39 | 14 | South Africa |
+| kr | 58 | 6 | South Korea |
+| es | 33 | 6 | Spain |
+| se | 37 | 3 | Sweden |
+| ch | 35 | 5 | Switzerland |
+| tw | 57 | 8 | Taiwan |
+| th | 53 | 9 | Thailand |
+| tr | 40 | 6 | Turkey |
+| ae | 44 | 8 | UAE |
+| ua | 40 | 4 | Ukraine |
+| gb | 34 | 4 | United Kingdom |
+| us | 19 | 6 | United States |
+| ve | 21 | 10 | Venezuela |
+
+**Base map** (from github.com/HenrySeed/Terminal-World-Map):
 
 ```
-                        🌍 Bitcoin Treasury World Map
+          . _..::__:  ,-"-"._       |]       ,     _,.__
+  _.___ _ _<_>`!(._`.`-.    /        _._     `_ ,_/  '  '-._.---.-..__
+.{     " " `-==,',._\{  \  / {)     / _ ">_,-' `                 /-/_
+ \_.:--.       `._ )`^-. "'      , [_/(                       __,/-'
+'"'     \         "    _L       |-_,--'                )     /. (|
+         |           ,'         _)_.\\._<> {}              _,' /  '
+         `.         /          [_/_'` `"(                <'}  )
+          \\    .-. )          /   `-'"..' `:._          _)  '
+   `        \  (  `(          /         `:\  > \  ,-^.  /' '
+             `._,   ""        |           \`'   \|   ?_)  {\
+                `=.---.       `._._       ,'     "`  |' ,- '.
+                  |    `-._        |     /          `:`<_|=--._
+                  (        >       .     | ,          `=.__.`-'\
+                   `.     /        |     |{|              ,-.,\     .
+                    |   ,'          \   / `'            ,"     \
+                    |  /             |_'                |  __  /
+                    | |                                 '-'  `-'   \.
+                    |/                                        "    /
+                    \.                                            '
 
-         🇨🇦 CA                    🇬🇧 UK  🇩🇪 DE
-         {btc}                    {btc}  {btc}     🇷🇺 RU
-    🇺🇸 US                   🇫🇷 FR  🇨🇭 CH               {btc}         🇯🇵 JP
-    {btc}                   {btc}  {btc}                              {btc}
-                        🇪🇸 ES        🇹🇷 TR       🇨🇳 CN    🇰🇷 KR
-                        {btc}        {btc}       {btc}    {btc}
-         🇲🇽 MX  🇸🇻 SV        🇳🇬 NG   🇦🇪 AE   🇮🇳 IN    🇭🇰 HK
-         {btc}  {btc}        {btc}   {btc}   {btc}    {btc}
-                                                 🇸🇬 SG  🇵🇭 PH
-    🇧🇷 BR                   🇿🇦 ZA              {btc}  {btc}
-    {btc}                   {btc}                🇦🇺 AU
-                                                  {btc}
-
-    ────────────────────────────────────────────────────────────
-    Top 10 by BTC Holdings
-    ────────────────────────────────────────────────────────────
-    #1  🇺🇸 United States    4,810,110 BTC  (221 companies)
-    #2  🇲🇹 Malta              702,478 BTC  (  3 companies)
-    ...
-    ────────────────────────────────────────────────────────────
-    View on site: https://bitcoincompanies.co/countries
+                     ,/           ______._.--._ _..---.---------.
+__,-----"-..?----_/ )\    . ,-'"             "                  (__--/
+                      /__/\/
 ```
 
-**Instructions for placing countries:**
-- Use the API response to get the actual list of countries with BTC > 0
-- Place each country at its approximate geographic position on the grid above
-- If a country from the API is not in the template, either skip it or add it in the right geographic spot
-- If a country in the template has 0 BTC or is not in the API response, omit it
-- Below the map, list the top 10 countries ranked by BTC as a leaderboard
+**Instructions:**
+- NO EMOJI anywhere
+- Start with the base map above
+- Look up the top 3 countries from the API response in the position table
+- Replace the character at (col, row) with `[1]`, `[2]`, `[3]` respectively
+- If a marker overwrites map characters, that's fine — the marker takes priority
+- Below the map, add a legend and top 10 leaderboard:
+
+```
+ BITCOIN TREASURY WORLD MAP
+
+ ...map with [1] [2] [3] placed...
+
+ [1] United States    4,810,110 BTC
+ [2] Malta              702,478 BTC
+ [3] South Korea        239,042 BTC
+
+ TOP 10 BY BTC HOLDINGS
+ --------------------------------------------------------------------------
+  #1   US  United States     4,810,110 BTC  (221 companies)
+  ...
+  #10  XX  Country Name          X,XXX BTC  (  X companies)
+ --------------------------------------------------------------------------
+ View on site: https://bitcoincompanies.co/countries
+```
 
 ---
 
