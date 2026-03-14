@@ -14,18 +14,18 @@ claude plugin add sbounmy/bitcoin-companies-skills
 
 One command for everything. Just type `/btc` followed by what you want:
 
-```
-/btc strategy.com           → company detail card
-/btc Marathon               → search by name
-/btc usa                    → US companies leaderboard
-/btc top 10 mining          → top 10 miners
-/btc whales                 → whale-tier companies
-/btc report etf             → ETF treasury analysis
-/btc countries              → countries ranked by BTC
-/btc tiers                  → tier definitions
-/btc weather                → global market weather (beta)
-/btc map                    → ASCII world map of BTC by country
-```
+| Command | What it does |
+|---------|-------------|
+| `/btc strategy.com` | Company detail card |
+| `/btc Marathon` | Search by name |
+| `/btc usa` | US companies leaderboard |
+| `/btc top 10 mining` | Top 10 miners |
+| `/btc whales` | Whale-tier companies |
+| `/btc report etf` | ETF treasury analysis |
+| `/btc countries` | Countries ranked by BTC |
+| `/btc tiers` | Tier definitions |
+| `/btc weather` | Global market weather (beta) |
+| `/btc map` | ASCII world map |
 
 ## Examples
 
@@ -61,6 +61,55 @@ Returns a formatted table with rank, company, ticker, BTC holdings, tier, verifi
 ```
 
 Returns aggregate stats: total companies, total BTC held, breakdowns by category and tier, plus a top 10 table.
+
+### ASCII World Map
+
+```
+/btc map
+```
+
+```
+ BITCOIN TREASURY WORLD MAP
+
+          . _..::__:  ,-"-"._       |]       ,     _,.__
+  _.___ _ _<_>`!(._`.`-.    /        _._     `_ ,_/  '  '-._.---.-..__
+.{     " " `-==,',._\{  \  / {)     / _ ">_,-' `                 /-/_
+ \_.:--.       `._ )`^-. "'      , [_/(                       __,/-'
+'"'     \         "    _L       |-_,--'                )     /. (|
+         |           ,'         _)_.\\._<> {}              _,' /  '
+   [1]   `.         /          [_/_'` `"(     [2]       <'}  )
+          \\    .-. )          /   `-'"..' `:._          _) [3]
+   `        \  (  `(          /         `:\  > \  ,-^.  /' '
+             `._,   ""        |           \`'   \|   ?_)  {\
+                `=.---.       `._._       ,'     "`  |' ,- '.
+                  |    `-._        |     /          `:`<_|=--._
+                  (        >       .     | ,          `=.__.`-'\
+                   `.     /        |     |{|              ,-.,\     .
+                    |   ,'          \   / `'            ,"     \
+                    |  /             |_'                |  __  /
+                    | |                                 '-'  `-'   \.
+                    |/                                        "    /
+                    \.                                            '
+
+                     ,/           ______._.--._ _..---.---------.
+__,-----"-..?----_/ )\    . ,-'"             "                  (__--/
+                      /__/\/
+
+ [1] United States      4,810,110 BTC
+ [2] Malta                702,478 BTC
+ [3] South Korea          239,042 BTC
+
+ TOP 10 BY BTC HOLDINGS
+ --------------------------------------------------------------------------
+  #1   US  United States       4,810,110 BTC  (221 companies)
+  #2   MT  Malta                 702,478 BTC  (  3 companies)
+  #3   KR  South Korea          239,042 BTC  ( 10 companies)
+  ...
+ --------------------------------------------------------------------------
+ View on site: https://bitcoincompanies.co/countries
+```
+
+Top 3 countries are placed on the map using pre-computed Mercator projection coordinates. Map from [Terminal-World-Map](https://github.com/HenrySeed/Terminal-World-Map).
 
 ## API
 
