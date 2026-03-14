@@ -297,4 +297,7 @@ GET /tiers                            Tier definitions with ranges
 - `rank`, `tier` (`{ id, name, emoji }`)
 - `btc`, `verified_percentage`, `supply_percentage`
 - `country` (`{ id, code, name }`)
+- `app_url` (canonical page URL on bitcoincompanies.co)
 - `reviews_count`, `reviews_average`, `updated_at`
+
+**All responses include `app_url`** — always use this field for "View on site" links. Never hardcode URLs.
