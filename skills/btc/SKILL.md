@@ -1,6 +1,6 @@
 ---
 name: btc
-description: "Ask anything about Bitcoin companies. Examples: 'strategy.com', 'top 10 mining', 'usa', 'report etf', 'whales', 'Marathon', 'countries'"
+description: "Ask anything about Bitcoin companies. Examples: 'strategy.com', 'top 10 mining', 'usa', 'report etf', 'whales', 'Marathon', 'countries', 'map'"
 ---
 
 # Bitcoin Companies
@@ -22,6 +22,7 @@ Classify the user's input into one of three intents:
 | Contains "stats", "overview", "how much", "total" | `total btc held`, `stats`, `market overview` | **REPORT** |
 | Contains "countries" or "tiers" | `list countries`, `show tiers` | **LIST** (special) |
 | Contains "weather", "sentiment", "activity" | `weather for strategy.com`, `market sentiment` | **LOOKUP** + weather (BETA) |
+| Contains "map", "world", "globe" | `map`, `world map`, `globe` | **MAP** |
 | Everything else (assumed company name) | `Marathon`, `Coinbase`, `MicroStrategy` | **LOOKUP** (search) |
 
 **Country aliases to resolve:**
@@ -203,6 +204,56 @@ BTC Price: ${price} | 24h: {change_24h}%
 
 View on site: {url}
 ```
+
+---
+
+## MAP intent
+
+Draw an ASCII world map showing BTC holdings by country.
+
+### Fetch
+
+```
+WebFetch https://bitcoincompanies.co/api/v1/countries?limit=50
+```
+
+### Format
+
+Place countries at approximate geographic positions. Use flag emoji + country code + BTC amount.
+Format BTC with K/M suffixes (e.g., `4.8M`, `159K`, `12K`). Only show countries with >0 BTC.
+
+```
+                        🌍 Bitcoin Treasury World Map
+
+         🇨🇦 CA                    🇬🇧 UK  🇩🇪 DE
+         {btc}                    {btc}  {btc}     🇷🇺 RU
+    🇺🇸 US                   🇫🇷 FR  🇨🇭 CH               {btc}         🇯🇵 JP
+    {btc}                   {btc}  {btc}                              {btc}
+                        🇪🇸 ES        🇹🇷 TR       🇨🇳 CN    🇰🇷 KR
+                        {btc}        {btc}       {btc}    {btc}
+         🇲🇽 MX  🇸🇻 SV        🇳🇬 NG   🇦🇪 AE   🇮🇳 IN    🇭🇰 HK
+         {btc}  {btc}        {btc}   {btc}   {btc}    {btc}
+                                                 🇸🇬 SG  🇵🇭 PH
+    🇧🇷 BR                   🇿🇦 ZA              {btc}  {btc}
+    {btc}                   {btc}                🇦🇺 AU
+                                                  {btc}
+
+    ────────────────────────────────────────────────────────────
+    Top 10 by BTC Holdings
+    ────────────────────────────────────────────────────────────
+    #1  🇺🇸 United States    4,810,110 BTC  (221 companies)
+    #2  🇲🇹 Malta              702,478 BTC  (  3 companies)
+    ...
+    ────────────────────────────────────────────────────────────
+    View on site: https://bitcoincompanies.co/countries
+```
+
+**Instructions for placing countries:**
+- Use the API response to get the actual list of countries with BTC > 0
+- Place each country at its approximate geographic position on the grid above
+- If a country from the API is not in the template, either skip it or add it in the right geographic spot
+- If a country in the template has 0 BTC or is not in the API response, omit it
+- Below the map, list the top 10 countries ranked by BTC as a leaderboard
 
 ---
 

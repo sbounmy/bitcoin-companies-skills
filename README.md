@@ -24,6 +24,7 @@ One command for everything. Just type `/btc` followed by what you want:
 /btc countries              → countries ranked by BTC
 /btc tiers                  → tier definitions
 /btc weather                → global market weather (beta)
+/btc map                    → ASCII world map of BTC by country
 ```
 
 ## Examples
