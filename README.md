@@ -12,7 +12,26 @@ claude plugin add sbounmy/bitcoin-companies-skills
 
 Or manually copy the `skills/` folder to `~/.claude/skills/`.
 
-## Commands
+## Usage
+
+### `/bitcoin` (recommended)
+
+One command for everything. Just type what you want in plain language:
+
+```
+/bitcoin strategy.com           → company detail card
+/bitcoin Marathon               → search by name
+/bitcoin usa                    → US companies leaderboard
+/bitcoin top 10 mining          → top 10 miners
+/bitcoin whales                 → whale-tier companies
+/bitcoin report etf             → ETF treasury analysis
+/bitcoin countries              → countries ranked by BTC
+/bitcoin tiers                  → tier definitions
+```
+
+### Specific commands
+
+You can also use the targeted commands directly:
 
 | Command | Description | Example |
 |---------|-------------|---------|
@@ -20,12 +39,12 @@ Or manually copy the `skills/` folder to `~/.claude/skills/`.
 | `/bitcoin-list` | Display the treasury leaderboard | `/bitcoin-list top 10 mining` |
 | `/bitcoin-report` | Generate a treasury analysis report | `/bitcoin-report etf` |
 
-## Usage
+## Examples
 
-### Search a company
+### Look up a company
 
 ```
-/bitcoin-search strategy.com
+/bitcoin strategy.com
 ```
 
 ```
@@ -39,34 +58,21 @@ Profile: https://bitcoincompanies.co/strategy.com
 ### Browse the leaderboard
 
 ```
-/bitcoin-list top 10
+/bitcoin top 10
+/bitcoin mining
+/bitcoin usa verified
 ```
 
 Returns a formatted table with rank, company, ticker, BTC holdings, tier, verification status, and country.
 
-Filter by category, country, or tier:
-
-```
-/bitcoin-list mining
-/bitcoin-list usa
-/bitcoin-list whales
-/bitcoin-list etf verified
-```
-
 ### Generate a report
 
 ```
-/bitcoin-report
+/bitcoin report
+/bitcoin report mining
 ```
 
 Returns aggregate stats: total companies, total BTC held, breakdowns by category and tier, plus a top 10 table.
-
-Filter by category or country:
-
-```
-/bitcoin-report mining
-/bitcoin-report united-states
-```
 
 ## API
 

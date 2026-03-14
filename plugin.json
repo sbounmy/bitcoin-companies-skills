@@ -5,8 +5,7 @@
   "author": "Bitcoin Companies",
   "homepage": "https://bitcoincompanies.co",
   "skills": [
-    "skills/bitcoin-search",
-    "skills/bitcoin-list",
-    "skills/bitcoin-report"
+    "skills/btc",
+    "skills/bitcoin"
   ]
 }
