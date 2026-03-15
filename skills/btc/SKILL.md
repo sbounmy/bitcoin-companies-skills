@@ -1,36 +1,43 @@
 ---
 name: btc
-description: "Bitcoin treasury research terminal. Search companies, compare holdings, explore on-chain addresses & transactions, read reviews, and generate reports. Examples: 'strategy.com', 'vs marathon coinbase', 'addresses strategy.com', 'tx strategy.com', 'trust binance', 'flow mining', 'top 10', 'map'"
+description: "Answer ANY question about Bitcoin companies, treasuries, holdings, rankings, reviews, or trust. Works with both commands AND natural language. Use this skill whenever the user asks about: Bitcoin company data, BTC holdings, treasury rankings, company comparisons, on-chain addresses/transactions, proof of reserves, reviews/trust/reputation, Bitcoin leaderboards, mining/ETF/exchange companies, or country-level BTC stats. Examples: 'strategy.com', 'how much bitcoin does coinbase hold?', 'what are the top mining companies?', 'can I trust binance?', 'compare marathon vs riot', 'show me strategy bitcoin purchases', 'which countries hold the most bitcoin?', 'is kraken safe?', 'what tier is tesla?'"
 ---
 
 # Bitcoin Companies
 
-One command for all Bitcoin treasury data. Just say what you want.
+Answer any question about Bitcoin companies. Works with both structured commands and natural language.
 
 ## Step 1: Route the query
 
-Classify the user's input into one of three intents:
+Classify the user's input into an intent. The input can be a structured command OR a natural language question. Extract the key entity (company name/domain) and action from the query.
 
-| Check (in order) | Examples | Intent |
-|-------------------|----------|--------|
-| Contains a domain (has a `.` with no spaces) | `strategy.com`, `coinbase.com` | **LOOKUP** |
-| Starts with "report" or "analysis" | `report mining`, `analysis etf` | **REPORT** |
-| Matches a country name, code, or alias | `usa`, `united states`, `france`, `japan` | **LIST** (country) |
-| Matches a category | `mining`, `etf`, `exchange`, `stocks`, `custody`, `software`, `private` | **LIST** (category) |
-| Matches a tier name | `whale`, `shark`, `sovereign`, `shrimp`, `dolphin` | **LIST** (tier) |
-| Contains "top N", "list", "rank", "leaderboard" | `top 10`, `list verified`, `rankings` | **LIST** |
-| Contains "stats", "overview", "how much", "total" | `total btc held`, `stats`, `market overview` | **REPORT** |
-| Contains "countries" or "tiers" | `list countries`, `show tiers` | **LIST** (special) |
-| Contains "map", "world", "globe" | `map`, `world map`, `globe` | **MAP** |
-| Starts with "history" or "claims" or "acquisitions" | `history strategy.com`, `claims coinbase.com` | **HISTORY** |
-| Starts with "vs" or "compare" | `vs strategy.com metaplanet.com`, `compare Marathon Riot` | **VS** |
-| Starts with "flow" | `flow`, `flow strategy.com`, `flow mining` | **FLOW** |
-| Contains "weather", "sentiment", "activity" | `weather for strategy.com`, `market sentiment` | **FLOW** |
-| Starts with "addresses" or "addrs" | `addresses strategy.com`, `addrs coinbase.com verified` | **ADDRESSES** |
-| Starts with "tx" or "transactions" | `tx strategy.com`, `tx strategy.com --large` | **TX** |
-| Starts with "proof" or "por" | `proof strategy.com`, `por coinbase.com` | **PROOF** |
-| Starts with "reviews" or "trust" or "reputation" or "can I trust" or "is X safe" | `reviews binance.com`, `trust coinbase` | **REVIEWS** |
-| Everything else (assumed company name) | `Marathon`, `Coinbase`, `MicroStrategy` | **LOOKUP** (search) |
+| Intent | Triggers (commands OR natural language) | Examples |
+|--------|----------------------------------------|----------|
+| **LOOKUP** | Contains a domain (has a `.`), asks about a specific company, "how much BTC does X hold?", "tell me about X", "what tier is X?" | `strategy.com`, `"how much bitcoin does MicroStrategy hold?"`, `"what tier is Tesla?"` |
+| **REPORT** | Asks for aggregate data, summary, overview, stats, "how much total BTC?", starts with "report" | `report mining`, `"what's the total BTC held by all companies?"`, `"give me an overview of ETF holdings"` |
+| **LIST** (category) | Mentions a category (mining, etf, exchange, stocks, custody, software, private), "show me X companies" | `mining`, `"what are the top mining companies?"`, `"list all ETF companies"` |
+| **LIST** (country) | Mentions a country name/code, "companies in X", "which companies are in X?" | `usa`, `france`, `"which bitcoin companies are in Japan?"` |
+| **LIST** (tier) | Mentions a tier name (whale, shark, sovereign, shrimp, dolphin, etc.), "which companies are whales?" | `whales`, `"show me all sovereign-tier companies"` |
+| **LIST** | Contains "top N", "list", "rank", "leaderboard", "biggest", "largest" | `top 10`, `"who are the biggest bitcoin holders?"`, `"show the leaderboard"` |
+| **LIST** (special) | Asks about countries or tiers as categories | `"list countries"`, `"what are the tiers?"`, `"show tier definitions"` |
+| **MAP** | Contains "map", "world", "globe", "where", asks about geographic distribution | `map`, `"where are bitcoin companies located?"`, `"show me a world map"` |
+| **HISTORY** | Asks about purchase/acquisition history, timeline, "when did X buy bitcoin?", starts with "history"/"claims" | `history strategy.com`, `"when did MicroStrategy start buying bitcoin?"`, `"show me coinbase acquisitions"` |
+| **VS** | Compares two companies, "X vs Y", "compare X and Y", "how does X compare to Y?" | `vs strategy.com metaplanet.com`, `"compare Marathon and Riot"`, `"who holds more, Coinbase or Kraken?"` |
+| **FLOW** | Asks about inflows/outflows, buying/selling activity, net flow, starts with "flow", mentions "weather"/"sentiment" | `flow mining`, `"who's been buying lately?"`, `"is anyone selling bitcoin?"`, `"market sentiment"` |
+| **ADDRESSES** | Asks about wallet addresses, tracked addresses, starts with "addresses"/"addrs" | `addresses strategy.com`, `"what wallets does Coinbase use?"`, `"show tracked addresses for Marathon"` |
+| **TX** | Asks about recent transactions, on-chain activity, starts with "tx"/"transactions" | `tx strategy.com`, `"what are the latest transactions for Strategy?"`, `"show me large transfers from Coinbase"` |
+| **PROOF** | Asks about proof of reserves, verification, cryptographic proof, starts with "proof"/"por" | `proof strategy.com`, `"does Coinbase have proof of reserves?"`, `"how is Marathon verified?"` |
+| **REVIEWS** | Asks about reviews, trust, safety, reputation, reliability, "can I trust X?", "is X safe?", "what do people think of X?" | `trust binance`, `"what are binance reviews?"`, `"is Kraken reliable?"`, `"what do people say about Coinbase?"` |
+| **LOOKUP** (fallback) | Everything else that mentions a company name | `Marathon`, `Coinbase`, `"tell me about MicroStrategy"` |
+
+**When extracting from natural language:**
+- Find the company name/domain in the question
+- If user mentions a company by name (not domain), search via `/companies?q={name}&limit=1` first
+- Map "how much bitcoin", "holdings", "treasury" → LOOKUP
+- Map "buy", "purchase", "acquire", "when did they" → HISTORY
+- Map "wallet", "address" → ADDRESSES
+- Map "trust", "safe", "legit", "reliable", "reputation", "reviews", "what do people think" → REVIEWS
+- Map "compare", "vs", "versus", "better", "who holds more" → VS
 
 **Country aliases to resolve:**
 
@@ -665,6 +672,8 @@ WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}
 
 If rating filter provided, add `&rating={n}`.
 
+**Language filtering:** Detect the user's language from the conversation (e.g., French user → `&language=fr`). Always add `&language={code}` to show reviews in the user's language. If no reviews match, retry without the language filter and note that reviews are in mixed languages.
+
 ### Format
 
 **If trust query, prepend trust summary:**
@@ -729,6 +738,7 @@ GET /companies/{domain}/transactions  Company on-chain transactions
   ?sort=recent|amount                 Sort order (default: recent)
 GET /companies/{domain}/reviews       Company reviews
   ?rating=1-5                         Filter by star rating
+  ?language=en                        Filter by language code (en, fr, de, etc.)
   ?sort=recent|rating                 Sort order (default: recent)
 
 GET /stats                            Aggregate stats (totals, by_category, by_tier)
@@ -768,7 +778,7 @@ GET /tiers                            Tier definitions with ranges
 
 **Review:**
 - `id`, `object` ("review"), `overall_rating` (1-5), `title`, `body`
-- `author_name`, `source`, `published_at`
+- `author_name`, `source`, `language` (ISO code: "en", "fr", "de", etc.), `published_at`
 - `reply_text`, `reply_author` (nullable, for company replies)
 
 **All responses include `app_url`** — always use this field for "View on site" links. Never hardcode URLs.
