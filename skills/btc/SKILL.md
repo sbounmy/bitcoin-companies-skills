@@ -7,6 +7,14 @@ description: "Answer ANY question about Bitcoin companies, treasuries, holdings,
 
 Answer any question about Bitcoin companies. Works with both structured commands and natural language.
 
+## Performance Rules
+
+**CRITICAL: Always fetch in parallel when possible.** WebFetch calls are slow (~15s each). Never fetch sequentially when calls are independent.
+
+- If you need to search by name first (`/companies?q=X`), do that FIRST, then fetch all remaining endpoints IN PARALLEL in a single tool call block.
+- If the domain is already known, fetch ALL endpoints in parallel immediately.
+- Example: REVIEWS intent with domain known → fetch `/companies/{domain}` AND `/companies/{domain}/reviews` in the SAME tool call block.
+
 ## Step 1: Route the query
 
 Classify the user's input into an intent. The input can be a structured command OR a natural language question. Extract the key entity (company name/domain) and action from the query.
@@ -54,18 +62,15 @@ Look up a specific company by domain or search by name.
 
 ### Fetch
 
-**If input contains a dot** (domain):
+**If input contains a dot** (domain) — fetch BOTH in parallel:
 ```
 WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}
+WebFetch https://bitcoincompanies.co/api/v1/price
 ```
 
-**Otherwise** (name search):
+**Otherwise** (name search) — fetch search + price in parallel:
 ```
 WebFetch https://bitcoincompanies.co/api/v1/companies?q={query}&limit=5
-```
-
-Also fetch price for USD conversion:
-```
 WebFetch https://bitcoincompanies.co/api/v1/price
 ```
 
@@ -396,22 +401,24 @@ Extract two company identifiers from the query. They can be domains or names.
 
 If both identifiers are identical, respond: "Cannot compare a company with itself."
 
-### Fetch (in parallel)
+### Fetch (MAXIMIZE parallel calls)
 
-For each company, if identifier contains a dot (domain):
+**If both are domains** — fetch ALL 3 in parallel:
 ```
-WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}
-```
-
-Otherwise (name search):
-```
-WebFetch https://bitcoincompanies.co/api/v1/companies?q={query}&limit=1
-```
-Then fetch the detail endpoint using the returned `id`.
-
-Also fetch price:
-```
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain1}
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain2}
 WebFetch https://bitcoincompanies.co/api/v1/price
+```
+
+**If names need search** — search both + price in parallel first, then fetch details in parallel:
+```
+# Step 1 (parallel):
+WebFetch https://bitcoincompanies.co/api/v1/companies?q={name1}&limit=1
+WebFetch https://bitcoincompanies.co/api/v1/companies?q={name2}&limit=1
+WebFetch https://bitcoincompanies.co/api/v1/price
+# Step 2 (parallel, using domains from step 1):
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain1}
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain2}
 ```
 
 If either company returns 404, show: "Company not found: {identifier}"
@@ -659,15 +666,24 @@ Community reviews and trust signal for a company. Also triggered by trust querie
 - `can I trust coinbase` → search name, trust summary + reviews
 - `is binance safe` → search name, trust summary + reviews
 
-If input is a name (no dot), search first via `/companies?q={name}&limit=1`.
+If input is a name (no dot), search first via `/companies?q={name}&limit=1`, then use the `id` (domain) from the result.
 
 Trust queries (contains "trust", "safe", "reliable", "legit") trigger a trust summary before the reviews.
 
 ### Fetch
 
+**IMPORTANT: Fetch company detail AND reviews in PARALLEL** (both only need the domain):
+
 ```
-WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/reviews?sort=recent&limit=10&page={page}
+# If name search was needed, do it first, then parallel:
+WebFetch https://bitcoincompanies.co/api/v1/companies?q={name}&limit=1
+# Then IN PARALLEL (same tool call block):
 WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/reviews?sort=recent&limit=10&page={page}
+
+# If domain is already known, fetch BOTH in parallel immediately:
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/reviews?sort=recent&limit=10&page={page}
 ```
 
 If rating filter provided, add `&rating={n}`.
