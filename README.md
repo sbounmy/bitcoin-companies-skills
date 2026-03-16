@@ -1,8 +1,10 @@
 # Bitcoin Companies Skills
 
-Bitcoin treasury research terminal for Claude Code. Search companies, compare holdings, explore on-chain addresses and transactions, read reviews, and generate reports.
+Bitcoin treasury data in your terminal. Ask anything about Bitcoin companies, holdings, rankings, reviews, and on-chain data.
 
-Powered by the [Bitcoin Companies API](https://bitcoincompanies.co/api-docs) (free, no auth required).
+Works with **commands** and **plain English**. No API key needed.
+
+https://github.com/sbounmy/bitcoin-companies-skills/releases/download/v2.1.0/demo.mp4
 
 ## Install
 
@@ -10,60 +12,86 @@ Powered by the [Bitcoin Companies API](https://bitcoincompanies.co/api-docs) (fr
 claude plugin add sbounmy/bitcoin-companies-skills
 ```
 
-## Usage
+## Just ask
 
-One command for everything. Just type `/btc` followed by what you want:
+You don't need to memorize commands. Just ask naturally:
 
-### Lookup & Search
+```
+how much bitcoin does coinbase hold?
+can I trust binance?
+what are the top mining companies?
+compare marathon vs riot
+who are the biggest bitcoin holders in europe?
+which companies have the best reviews?
+```
+
+Or use `/btc` with structured commands for power users.
+
+## Commands
+
+### Company lookup
 
 | Command | What it does |
 |---------|-------------|
-| `/btc strategy.com` | Company detail card |
+| `/btc strategy.com` | Company detail card with BTC, rank, tier |
 | `/btc Marathon` | Search by name |
+| `how much bitcoin does Tesla hold?` | Natural language lookup |
 
-### Leaderboard & Rankings
+### Leaderboard & rankings
 
 | Command | What it does |
 |---------|-------------|
+| `/btc top 10` | Top 10 by BTC holdings |
 | `/btc top 10 mining` | Top 10 miners |
-| `/btc usa` | US companies leaderboard |
+| `/btc usa` | US companies |
+| `/btc europe` | European companies |
 | `/btc whales` | Whale-tier companies |
 | `/btc countries` | Countries ranked by BTC |
 | `/btc tiers` | Tier definitions |
+| `who are the biggest holders in asia?` | Natural language filtering |
+| `which companies have the best reviews?` | Sort by review rating |
 
-### Compare & Analyze
+### Compare & analyze
 
 | Command | What it does |
 |---------|-------------|
 | `/btc vs strategy.com marathon` | Side-by-side comparison |
 | `/btc report etf` | ETF treasury analysis |
-| `/btc flow mining` | Net flow & market weather |
-| `/btc map` | ASCII world map |
+| `/btc flow mining` | Net flow and market sentiment |
+| `/btc map` | ASCII world map with top holders |
+| `compare coinbase and kraken` | Natural language comparison |
 
-### On-Chain Data
+### On-chain data
 
 | Command | What it does |
 |---------|-------------|
-| `/btc addresses strategy.com` | Verified wallet addresses |
+| `/btc addresses strategy.com` | Tracked wallet addresses |
 | `/btc tx strategy.com` | Recent transactions |
-| `/btc proof strategy.com` | Proof of reserves summary |
+| `/btc tx strategy.com --large` | Large transactions only |
+| `/btc proof strategy.com` | Proof of reserves |
+| `show me coinbase wallet addresses` | Natural language |
 
-### Trust & Reviews
+### Trust & reviews
 
 | Command | What it does |
 |---------|-------------|
-| `/btc trust binance` | Trust score & reviews |
+| `/btc trust binance` | Trust score and reviews |
 | `/btc reviews coinbase.com` | Community reviews |
+| `is kraken safe?` | Natural language trust query |
+| `what do people think of binance?` | Reviews in your language |
 
-## Examples
+### History
 
-### Look up a company
+| Command | What it does |
+|---------|-------------|
+| `/btc history strategy.com` | Acquisition timeline |
+| `when did MicroStrategy start buying bitcoin?` | Natural language |
+
+## Example output
 
 ```
 /btc strategy.com
-```
 
-```
 Strategy (MSTR) — 👑 Sovereign
 738,731 BTC (~$52.4B USD) | Verified: 59%
 Rank #3 | United States
@@ -71,48 +99,37 @@ Supply: 3.52% of 21M
 View on site: https://bitcoincompanies.co/strategy.com
 ```
 
-### Compare companies
-
-```
-/btc vs strategy.com marathon
-```
-
-Side-by-side table comparing BTC holdings, tier, verification status, rank, and supply percentage.
-
-### Explore on-chain data
-
-```
-/btc addresses strategy.com
-/btc tx strategy.com --min-btc 100
-/btc proof strategy.com
-```
-
-Browse verified wallet addresses, filter transactions by size, and view proof of reserves with on-chain verification details.
-
-### Check trust
-
-```
-/btc trust binance
-```
-
-Shows average review rating, review count, verified BTC percentage, and recent reviews.
-
-### ASCII World Map
-
 ```
 /btc map
-```
 
-Renders a terminal-friendly world map with top 3 countries by BTC holdings marked, plus a top 10 leaderboard.
+ BITCOIN TREASURY WORLD MAP
+
+          . _..::__:  ,-"-"._       |]       ,     _,.__
+  _.___ _ _<_>`!(._`.`-.    /        _._     `_ ,_/  '  '-._.---.-..__
+.{     " " `-==,',._\{  \  / {)     / _ ">_,-' `                 /-/_
+ \_.:--.       `._ )`^-. [1]   , [_/(                       __,/-'
+'"'     \         "    _L       |-_,--'                )     /. (|
+         |           ,'         _)_.\\._<> {}              _,' /  '
+         `.         /          [_/_'` `"(                <'}  )
+          \\    .-. )          /   `-'"..' `[2]_          _)  '
+   `        \  (  `(          /         `:\  > \  ,-^.  /' '
+             `._,   ""        |           \`'   \|   ?_)  {\
+                `=.---.       `._._       ,'     "`  |' ,- '.
+
+ [1] United States    4,810,110 BTC
+ [2] Malta              702,478 BTC
+ [3] South Korea        239,042 BTC
+```
 
 ## API
 
-These skills use the public [Bitcoin Companies API](https://bitcoincompanies.co/api-docs):
+Powered by the public [Bitcoin Companies API](https://bitcoincompanies.co/api-docs):
 
-- Base URL: `https://bitcoincompanies.co/api/v1`
+- Base: `https://bitcoincompanies.co/api/v1`
 - Auth: None required
-- Rate limit: 60 requests/min per IP
-- Format: JSON (Stripe-style responses)
+- Rate limit: 60 req/min per IP
+- Format: JSON (Stripe-style with `id` + `object` on every resource)
+- Docs: [bitcoincompanies.co/api-docs](https://bitcoincompanies.co/api-docs)
 
 ## License
 

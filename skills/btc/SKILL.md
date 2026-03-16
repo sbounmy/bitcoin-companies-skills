@@ -25,6 +25,7 @@ Classify the user's input into an intent. The input can be a structured command 
 | **REPORT** | Asks for aggregate data, summary, overview, stats, "how much total BTC?", starts with "report" | `report mining`, `"what's the total BTC held by all companies?"`, `"give me an overview of ETF holdings"` |
 | **LIST** (category) | Mentions a category (mining, etf, exchange, stocks, custody, software, private), "show me X companies" | `mining`, `"what are the top mining companies?"`, `"list all ETF companies"` |
 | **LIST** (country) | Mentions a country name/code, "companies in X", "which companies are in X?" | `usa`, `france`, `"which bitcoin companies are in Japan?"` |
+| **LIST** (region) | Mentions a region/continent, "companies in Europe", "Asian bitcoin companies" | `europe`, `"top bitcoin companies in Asia"`, `"North American holders"` |
 | **LIST** (tier) | Mentions a tier name (whale, shark, sovereign, shrimp, dolphin, etc.), "which companies are whales?" | `whales`, `"show me all sovereign-tier companies"` |
 | **LIST** | Contains "top N", "list", "rank", "leaderboard", "biggest", "largest" | `top 10`, `"who are the biggest bitcoin holders?"`, `"show the leaderboard"` |
 | **LIST** (special) | Asks about countries or tiers as categories | `"list countries"`, `"what are the tiers?"`, `"show tier definitions"` |
@@ -115,13 +116,18 @@ Combine multiple filters from the query:
 | `france` | `country=france` |
 | `japan` | `country=japan` |
 | Any country name | `country={slug}` |
+| `europe` / `asia` / `north america` | `region={slug}` (e.g., `region=western-europe`) |
+| Any region name | `region={slug}` |
 | `whale` / `whales` | `tier=whale` |
 | `sovereign` | `tier=sovereign` |
 | Any tier name | `tier={tier}` |
 | `verified` / `verified only` | `only_verified=true` |
+| `best reviewed` / `highest rated` | `sort=best_reviewed` |
 | `page 2` | `page=2` |
 
 Default: `limit=25` with no filters.
+
+**Region slugs:** `north-america`, `south-america`, `western-europe`, `eastern-europe`, `asia`, `middle-east`, `africa`, `oceania`
 
 ### Fetch
 
@@ -738,6 +744,7 @@ GET /companies                        Paginated leaderboard
   ?category=mining                    Filter: mining, etf, exchange, stocks, custody, software, private
   ?tier=whale                         Filter: sovereign, leviathan, humpback, whale, shark, dolphin, fish, octopus, crab, shrimp
   ?country=united-states              Filter by country slug
+  ?region=western-europe              Filter by region slug
   ?sort=rank|verified|best_reviewed   Sort order
   ?only_verified=true                 Verified companies only
   ?limit=25&page=1                    Pagination (max 100)
