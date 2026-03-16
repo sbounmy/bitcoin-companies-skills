@@ -4,7 +4,7 @@ Bitcoin treasury data in your terminal. Ask anything about Bitcoin companies, ho
 
 Works with **commands** and **plain English**. No API key needed.
 
-https://github.com/sbounmy/bitcoin-companies-skills/releases/download/v2.1.0/demo.mp4
+https://github.com/user-attachments/assets/4efa343b-bd46-4cee-82d3-223fa736e324
 
 ## Install
 
