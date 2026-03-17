@@ -37,6 +37,7 @@ Classify the user's input into an intent. The input can be a structured command 
 | **TX** | Asks about recent transactions, on-chain activity, starts with "tx"/"transactions" | `tx strategy.com`, `"what are the latest transactions for Strategy?"`, `"show me large transfers from Coinbase"` |
 | **PROOF** | Asks about proof of reserves, verification, cryptographic proof, starts with "proof"/"por" | `proof strategy.com`, `"does Coinbase have proof of reserves?"`, `"how is Marathon verified?"` |
 | **REVIEWS** | Asks about reviews, trust, safety, reputation, reliability, "can I trust X?", "is X safe?", "what do people think of X?" | `trust binance`, `"what are binance reviews?"`, `"is Kraken reliable?"`, `"what do people say about Coinbase?"` |
+| **WRITE_REVIEW** | Wants to write/post/leave/submit a review for a company | `"leave a review for binance"`, `"write a review for strategy.com"`, `"post a review"`, `"review coinbase 5 stars"` |
 | **LOOKUP** (fallback) | Everything else that mentions a company name | `Marathon`, `Coinbase`, `"tell me about MicroStrategy"` |
 
 **When extracting from natural language:**
@@ -734,6 +735,103 @@ Format `published_at` as "Mon DD, YYYY".
 
 ---
 
+## WRITE_REVIEW intent
+
+Post a review for a company via L402 Lightning payment. The agent collects review data, submits it, and displays a QR code for the human to pay.
+
+### Parse
+
+Extract from the query:
+- Company name or domain
+- Rating (1-5) if mentioned ("5 stars", "4/5", "rate it 3")
+- Review body if provided inline
+
+If rating or body not provided, **ask the user** before submitting.
+
+### Flow
+
+**Step 1: Collect review data**
+
+Ask the user for any missing fields:
+- `overall_rating` (required, 1-5)
+- `body` (required, the review text)
+- `title` (optional)
+
+**Step 2: Submit review → get 402 with invoice**
+
+```bash
+curl -s -X POST https://bitcoincompanies.co/api/v1/companies/{domain}/reviews \
+  -H "Content-Type: application/json" \
+  -d '{"overall_rating": 4, "title": "Great exchange", "body": "Fast withdrawals and good support."}'
+```
+
+The API returns 402 with a Lightning invoice and a QR code:
+
+```json
+{
+  "error": {
+    "type": "payment_required",
+    "message": "Pay 100 sats to publish this review",
+    "invoice": "lnbc100n1p...",
+    "amount_sats": 100,
+    "payment_hash": "abc123...",
+    "qr": "██████████████  ████...\n██          ██  ..."
+  }
+}
+```
+
+**Step 3: Display QR code to the human**
+
+Show the QR code from the `qr` field so the human can scan and pay with any Lightning wallet:
+
+```
+Your review is ready! Please scan this QR code with your Lightning wallet to pay 100 sats:
+
+██████████████  ████████  ██    ██  ██████████████
+██          ██        ████  ██      ██          ██
+██  ██████  ██    ██  ██  ████  ██  ██  ██████  ██
+...
+
+Or copy this invoice into your wallet:
+lnbc100n1p...
+```
+
+**Step 4: Confirm publication**
+
+After the human pays, the review is auto-published via webhook. Verify by fetching the reviews list:
+
+```
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}/reviews?sort=recent&limit=1
+```
+
+Then confirm: "Your review has been published!"
+
+If the review isn't published yet (payment still processing), tell the human to wait a moment and check again.
+
+### Format
+
+```
+## Write a Review for {company_name}
+
+Rating: {"*" * rating} ({rating}/5)
+Title: {title}
+Body: {body}
+
+Submitting your review...
+
+---
+
+Your review is ready! To publish it, pay 100 sats (≈$0.01) via Lightning:
+
+{qr field content, displayed as-is}
+
+Or copy this invoice: {invoice}
+
+After payment, your review will be published automatically.
+```
+
+---
+
 ## API Reference
 
 ```
@@ -763,6 +861,10 @@ GET /companies/{domain}/reviews       Company reviews
   ?rating=1-5                         Filter by star rating
   ?language=en                        Filter by language code (en, fr, de, etc.)
   ?sort=recent|rating                 Sort order (default: recent)
+POST /companies/{domain}/reviews      Create review (L402 payment required)
+  Body: { overall_rating, title?, body, language? }
+  → 402 with Lightning invoice + QR code
+  → Pay invoice, then review auto-publishes via webhook
 
 GET /stats                            Aggregate stats (totals, by_category, by_tier)
 GET /price                            Current BTC price + 24h change
@@ -800,7 +902,8 @@ GET /tiers                            Tier definitions with ranges
 - `block_height`, `block_time`, `explorer_url` (Arkham link)
 
 **Review:**
-- `id`, `object` ("review"), `overall_rating` (1-5), `title`, `body`
+- `id`, `object` ("review"), `state` ("pending"/"published"/"hidden")
+- `overall_rating` (1-5), `title`, `body`
 - `author_name`, `source`, `language` (ISO code: "en", "fr", "de", etc.), `published_at`
 - `reply_text`, `reply_author` (nullable, for company replies)
 
