@@ -744,25 +744,56 @@ Post a review for a company via L402 Lightning payment. The agent collects revie
 Extract from the query:
 - Company name or domain
 - Rating (1-5) if mentioned ("5 stars", "4/5", "rate it 3")
-- Review body if provided inline
 
-If rating or body not provided, **ask the user** before submitting.
+If input is a name (no dot), search first via `/companies?q={name}&limit=1`.
 
 ### Flow
 
-**Step 1: Collect review data**
+**Step 1: Fetch company info to know the category**
 
-Ask the user for any missing fields:
-- `overall_rating` (required, 1-5)
-- `body` (required, the review text)
-- `title` (optional)
+```
+WebFetch https://bitcoincompanies.co/api/v1/companies/{domain}
+```
+
+**Step 2: Ask for criteria ratings based on company category**
+
+Present relevant criteria as a quick checklist. The user rates each 1-5 (or skips). The agent uses these to compute the overall rating and generate the review body.
+
+| Category | Criteria |
+|----------|----------|
+| **exchange** | Security, Fees, Ease of use, Customer support, Withdrawal speed |
+| **mining** | Transparency, Hash rate reliability, Environmental practices, Financial reporting |
+| **etf** | Expense ratio, Tracking accuracy, Liquidity, Accessibility |
+| **custody** | Security, Insurance coverage, Audit frequency, Multi-sig support |
+| **software** | Product quality, Bitcoin integration, Transparency, Value for money |
+| **stocks** | Treasury strategy, Shareholder communication, Transparency, Execution |
+| **private** | Transparency, Proof of reserves, Community trust, Track record |
+
+Ask in ONE message like:
+```
+Rate Binance (exchange) on these criteria (1-5, or skip):
+
+1. Security:
+2. Fees:
+3. Ease of use:
+4. Customer support:
+5. Withdrawal speed:
+
+Any additional comments?
+```
+
+**Step 3: Generate review from criteria**
+
+- `overall_rating` = average of provided criteria ratings (rounded)
+- `body` = generate a natural 2-3 sentence review summarizing the ratings. Be honest and specific. Example: "Solid security and easy to use, but fees are on the high side. Customer support could be faster. Withdrawals process within a few hours."
+- Do NOT include a `title` (unnecessary)
 
 **Step 2: Submit review → get 402 with invoice**
 
 ```bash
 curl -s -X POST https://bitcoincompanies.co/api/v1/companies/{domain}/reviews \
   -H "Content-Type: application/json" \
-  -d '{"overall_rating": 4, "title": "Great exchange", "body": "Fast withdrawals and good support."}'
+  -d '{"overall_rating": 4, "body": "Solid security and easy to use, but fees are on the high side. Withdrawals process within a few hours."}'
 ```
 
 The API returns 402 with a Lightning invoice and a QR code:
@@ -810,22 +841,23 @@ If the review isn't published yet (payment still processing), tell the human to 
 
 ### Format
 
+**After collecting criteria:**
 ```
-## Write a Review for {company_name}
+## Review for {company_name}
 
-Rating: {"*" * rating} ({rating}/5)
-Title: {title}
-Body: {body}
+{"*" * rating} ({rating}/5)
+{generated body}
 
-Submitting your review...
+Submitting...
+```
 
----
-
-Your review is ready! To publish it, pay 100 sats (≈$0.01) via Lightning:
+**After 402 response:**
+```
+Review submitted! Pay 100 sats to publish:
 
 {qr field content, displayed as-is}
 
-Or copy this invoice: {invoice}
+Or copy invoice: {invoice}
 
 After payment, your review will be published automatically.
 ```
