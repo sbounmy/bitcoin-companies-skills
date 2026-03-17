@@ -82,16 +82,20 @@ WebFetch https://bitcoincompanies.co/api/v1/price
 ```
 **{name}** ({ticker}) — {tier.emoji} {tier.name}
 {btc} BTC (${btc * price} USD) | Verified: {verified_percentage}%
-Rank #{rank} | {country.name}
+Rank #{rank} | {country.name} | {average_rating}★ ({count} reviews)
 Supply: {supply_percentage}% of 21M
 View on site: {app_url}
 ```
 
+If `reviews.count` is 0, show "No reviews yet" instead of the rating.
+
 **Multiple results** (name search):
 
-| # | Company | Ticker | BTC | Tier | Country |
-|---|---------|--------|-----|------|---------|
-| 1 | ... | ... | ... | ... | ... |
+| # | Company | Ticker | BTC | Tier | Rating | Country |
+|---|---------|--------|-----|------|--------|---------|
+| 1 | ... | ... | ... | ... | 4.2★ (15) | ... |
+
+Use `reviews_average` and `reviews_count` from list items. Show "—" if no reviews.
 
 ---
 
@@ -154,10 +158,12 @@ WebFetch https://bitcoincompanies.co/api/v1/tiers
 ## Bitcoin Treasury Leaderboard {filter description}
 {total_count} companies | Page {page}
 
-| # | Company | Ticker | BTC | Tier | Verified | Country |
-|---|---------|--------|-----|------|----------|---------|
-| 1 | Strategy | MSTR | 500,000 | 👑 Sovereign | 100% | US |
+| # | Company | Ticker | BTC | Tier | Rating | Verified | Country |
+|---|---------|--------|-----|------|--------|----------|---------|
+| 1 | Strategy | MSTR | 500,000 | 👑 Sovereign | 4.5★ (23) | 100% | US |
 | ... |
+
+Use `reviews_average` and `reviews_count`. Show "—" if no reviews.
 
 {has_more ? "Page {page} of {total_pages}. Say 'page 2' to see more." : ""}
 ```
@@ -445,7 +451,7 @@ If either company returns 404, show: "Company not found: {identifier}"
 | Supply %         | {supply_pct}%    | {supply_pct}%    |
 | Category         | {category}       | {category}       |
 | Country          | {country.name}   | {country.name}   |
-| Reviews          | {avg}/5 ({count})| {avg}/5 ({count})|
+| Reviews          | {avg}★ ({count}) | {avg}★ ({count}) |
 
 View: {app_url1} | {app_url2}
 ```
@@ -769,24 +775,38 @@ Present relevant criteria as a quick checklist. The user rates each 1-5 (or skip
 | **stocks** | Treasury strategy, Shareholder communication, Transparency, Execution |
 | **private** | Transparency, Proof of reserves, Community trust, Track record |
 
-Ask in ONE message like:
+Ask in ONE message with star scale:
 ```
-Rate Binance (exchange) on these criteria (1-5, or skip):
+Rate Binance (exchange) — type 5 numbers (1-5):
 
-1. Security:
-2. Fees:
-3. Ease of use:
-4. Customer support:
-5. Withdrawal speed:
+Security:      ☆☆☆☆☆
+Fees:          ☆☆☆☆☆
+Ease of use:   ☆☆☆☆☆
+Support:       ☆☆☆☆☆
+Withdrawals:   ☆☆☆☆☆
 
-Any additional comments?
+e.g. "4 3 5 4 3" or skip any with 0
 ```
 
-**Step 3: Generate review from criteria**
+**Step 3: Confirm with filled stars, then generate review**
 
+After user responds (e.g. `4 3 5 4 3`), show confirmation:
+```
+Security:      ★★★★☆ (4/5)
+Fees:          ★★★☆☆ (3/5)
+Ease of use:   ★★★★★ (5/5)
+Support:       ★★★★☆ (4/5)
+Withdrawals:   ★★★☆☆ (3/5)
+
+Overall: ★★★★☆ (4/5)
+```
+
+Then generate the review:
 - `overall_rating` = average of provided criteria ratings (rounded)
 - `body` = generate a natural 2-3 sentence review summarizing the ratings. Be honest and specific. Example: "Solid security and easy to use, but fees are on the high side. Customer support could be faster. Withdrawals process within a few hours."
 - Do NOT include a `title` (unnecessary)
+
+Use `★` (U+2605) for filled stars and `☆` (U+2606) for empty stars.
 
 **Step 2: Submit review → get 402 with invoice**
 
@@ -841,17 +861,18 @@ If the review isn't published yet (payment still processing), tell the human to 
 
 ### Format
 
-**After collecting criteria:**
+**After collecting criteria, show confirmation + submit:**
 ```
 ## Review for {company_name}
 
-{"*" * rating} ({rating}/5)
-{generated body}
+★★★★☆ (4/5)
+Solid security and easy to use, but fees are on the high side.
+Withdrawals process within a few hours.
 
 Submitting...
 ```
 
-**After 402 response:**
+**After 402 response, show QR:**
 ```
 Review submitted! Pay 100 sats to publish:
 
