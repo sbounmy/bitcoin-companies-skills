@@ -801,9 +801,12 @@ Withdrawals:   ★★★☆☆ (3/5)
 Overall: ★★★★☆ (4/5)
 ```
 
-Then generate the review:
+Then ask the user to write their review:
+```
+Write your review (2-3 sentences):
+```
 - `overall_rating` = average of provided criteria ratings (rounded)
-- `body` = generate a natural 2-3 sentence review summarizing the ratings. Be honest and specific. Example: "Solid security and easy to use, but fees are on the high side. Customer support could be faster. Withdrawals process within a few hours."
+- `body` = the user's own words. Do NOT generate or write the review body for them. Wait for their input.
 - Do NOT include a `title` (unnecessary)
 
 Use `★` (U+2605) for filled stars and `☆` (U+2606) for empty stars.
