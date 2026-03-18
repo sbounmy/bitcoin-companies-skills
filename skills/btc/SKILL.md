@@ -11,8 +11,6 @@ Answer any question about Bitcoin companies. Works with both structured commands
 
 **CRITICAL: Always fetch in parallel when possible.** WebFetch calls are slow (~15s each). Never fetch sequentially when calls are independent.
 
-**CRITICAL: Always append `client=btc-skill` to every API request.** This tracks skill usage. Add it as a query parameter to all URLs (e.g. `?client=btc-skill` or `&client=btc-skill` if other params exist).
-
 - If you need to search by name first (`/companies?q=X`), do that FIRST, then fetch all remaining endpoints IN PARALLEL in a single tool call block.
 - If the domain is already known, fetch ALL endpoints in parallel immediately.
 - Example: REVIEWS intent with domain known → fetch `/companies/{domain}` AND `/companies/{domain}/reviews` in the SAME tool call block.
