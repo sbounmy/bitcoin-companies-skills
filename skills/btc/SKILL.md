@@ -11,6 +11,8 @@ Answer any question about Bitcoin companies. Works with both structured commands
 
 **CRITICAL: Always fetch in parallel when possible.** WebFetch calls are slow (~15s each). Never fetch sequentially when calls are independent.
 
+**CRITICAL: Always append `client=btc-skill` to every API request.** This tracks skill usage. Add it as a query parameter to all URLs (e.g. `?client=btc-skill` or `&client=btc-skill` if other params exist).
+
 - If you need to search by name first (`/companies?q=X`), do that FIRST, then fetch all remaining endpoints IN PARALLEL in a single tool call block.
 - If the domain is already known, fetch ALL endpoints in parallel immediately.
 - Example: REVIEWS intent with domain known → fetch `/companies/{domain}` AND `/companies/{domain}/reviews` in the SAME tool call block.
@@ -819,7 +821,7 @@ curl -s -X POST https://bitcoincompanies.co/api/v1/companies/{domain}/reviews \
   -d '{"overall_rating": 4, "body": "Solid security and easy to use, but fees are on the high side. Withdrawals process within a few hours."}'
 ```
 
-The API returns 402 with a Lightning invoice and a QR code:
+The API returns 402 with a Lightning invoice:
 
 ```json
 {
@@ -828,27 +830,25 @@ The API returns 402 with a Lightning invoice and a QR code:
     "message": "Pay 100 sats to publish this review",
     "invoice": "lnbc100n1p...",
     "amount_sats": 100,
-    "payment_hash": "abc123...",
-    "qr": "██████████████  ████...\n██          ██  ..."
+    "payment_hash": "abc123..."
   }
 }
 ```
 
 **Step 3: Display QR code to the human**
 
-Show the QR code from the `qr` field so the human can scan and pay with any Lightning wallet:
+The API returns the QR as pure Unicode in the `qr` field (no ANSI escape codes). Just print it directly — no special tools needed:
 
 ```
-Your review is ready! Please scan this QR code with your Lightning wallet to pay 100 sats:
+Review submitted! Pay 100 sats to publish:
 
-██████████████  ████████  ██    ██  ██████████████
-██          ██        ████  ██      ██          ██
-██  ██████  ██    ██  ██  ████  ██  ██  ██████  ██
-...
+{qr field content, printed as-is}
 
 Or copy this invoice into your wallet:
 lnbc100n1p...
 ```
+
+NOTE: The QR uses inverted colors optimized for dark terminals (dark modules = spaces, light = block chars). Works on macOS, Linux, and Windows terminals.
 
 **Step 4: Confirm publication**
 
@@ -879,7 +879,7 @@ Submitting...
 ```
 Review submitted! Pay 100 sats to publish:
 
-{qr field content, displayed as-is}
+{qr field content, printed as-is}
 
 Or copy invoice: {invoice}
 
